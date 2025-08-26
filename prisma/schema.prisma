@@ -15,3 +15,48 @@ model User {
   refreshToken String?
   createdAt    DateTime @default(now())
 }
+
+model UserProvider {
+  id        Int      @id @default(autoincrement())
+  name      String
+  num_tel   String?
+  compras   Compra[]
+  createdAt DateTime @default(now())
+}
+
+model CajaDiaria {
+  id        Int      @id @default(autoincrement())
+  fecha     DateTime @unique @default(now())
+  base      Float
+  efectivo  Float
+  ingresos  Float    @default(0) // suma de ventas
+  gastos    Float    @default(0) // suma de compras
+  balance   Float? // ingresos - gastos
+  createdAt DateTime @default(now())
+
+  compras Compra[]
+  ventas  Venta[]
+}
+
+model Compra {
+  id       Int      @id @default(autoincrement())
+  concepto String?
+  monto    Float
+  fecha    DateTime @default(now())
+
+  providerId Int?
+  provider   UserProvider? @relation(fields: [providerId], references: [id])
+
+  cajaId Int
+  caja   CajaDiaria @relation(fields: [cajaId], references: [id])
+}
+
+model Venta {
+  id       Int      @id @default(autoincrement())
+  concepto String?
+  total    Float
+  fecha    DateTime @default(now())
+
+  cajaId Int
+  caja   CajaDiaria @relation(fields: [cajaId], references: [id])
+}
