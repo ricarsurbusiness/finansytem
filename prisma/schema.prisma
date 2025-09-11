@@ -26,28 +26,32 @@ model UserProvider {
 }
 
 model DailyCash {
-  id          Int      @id @default(autoincrement())
-  date        DateTime @default(now())
-  isOpen      Boolean  @default(true)
-  openingCash Float
-  createdAt   DateTime @default(now())
+  id             Int           @id @default(autoincrement())
+  date           DateTime      @default(now())
+  isOpen         Boolean       @default(true)
+  openingCash    Float // Base inicial
+  closingCash    Float? // Efectivo final
+  totalSales     Float? // Total de ventas del día
+  totalPurchases Float? // Total de compras del día
+  reinforcements Float? // Refuerzos de caja
+  createdAt      DateTime      @default(now())
+  closedAt       DateTime? // Momento del cierre
+  transactions   Transaction[]
 
-  transactions Transaction[]
+  @@unique([date]) // Solo una caja por día
 }
 
 model Transaction {
-  id          Int             @id @default(autoincrement())
+  id          Int                  @id @default(autoincrement())
   type        TransactionType
   description String?
-  date        DateTime        @default(now())
-
+  amount      Float // Monto total de la transacción
+  date        DateTime             @default(now())
   dailyCashId Int
-  dailyCash   DailyCash @relation(fields: [dailyCashId], references: [id])
-
-  providerId Int?
-  provider   UserProvider? @relation(fields: [providerId], references: [id])
-
-  payments TransactionPayment[]
+  dailyCash   DailyCash            @relation(fields: [dailyCashId], references: [id])
+  providerId  Int?
+  provider    UserProvider?        @relation(fields: [providerId], references: [id])
+  payments    TransactionPayment[]
 }
 
 model TransactionPayment {
@@ -55,18 +59,17 @@ model TransactionPayment {
   paymentMethod PaymentMethod
   amount        Float
   createdAt     DateTime      @default(now())
-
   transactionId Int
-  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transaction   Transaction   @relation(fields: [transactionId], references: [id])
 }
 
 enum TransactionType {
-  SALE
-  PURCHASE
-  REINFORCEMENT
+  SALE // Venta
+  PURCHASE // Compra a proveedor
+  REINFORCEMENT // Refuerzo de caja
 }
 
 enum PaymentMethod {
-  CASH
-  TRANSFER
+  CASH // Efectivo
+  TRANSFER // Transferencia
 }
